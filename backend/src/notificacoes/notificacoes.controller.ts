@@ -29,6 +29,7 @@ export class NotificacoesController {
     return this.notificacoesService.findAll();
   }
 
+  // @IsPublic() usado para testar merge sort
   @Get('user/:userId')
   async findByUser(@Param('userId', ParseIntPipe) userId: number) {
     return this.notificacoesService.findByUser(userId);
