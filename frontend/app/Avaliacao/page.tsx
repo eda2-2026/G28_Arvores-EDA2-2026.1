@@ -18,6 +18,33 @@ import {
 } from "@/app/utils/api";
 import MeditAvaliacao from "../components/m_editar_avaliacao/M_Editar_Avaliacao";
 
+const mergeSortComentarios = <T extends { data: string }>(items: T[]): T[] => {
+  if (items.length <= 1) return items;
+
+  const middle = Math.floor(items.length / 2);
+  const left = mergeSortComentarios(items.slice(0, middle));
+  const right = mergeSortComentarios(items.slice(middle));
+
+  const merged: T[] = [];
+  let leftIndex = 0;
+  let rightIndex = 0;
+
+  while (leftIndex < left.length && rightIndex < right.length) {
+    const leftTime = new Date(left[leftIndex].data).getTime();
+    const rightTime = new Date(right[rightIndex].data).getTime();
+
+    if (leftTime <= rightTime) {
+      merged.push(left[leftIndex]);
+      leftIndex += 1;
+    } else {
+      merged.push(right[rightIndex]);
+      rightIndex += 1;
+    }
+  }
+
+  return merged.concat(left.slice(leftIndex), right.slice(rightIndex));
+};
+
 // --- Componente para o Card de Comentário ---
 const CommentCard = ({ comment, onAction }: { comment: any, onAction: () => void }) => {
     const [currentUserId, setCurrentUserId] = useState<number | null>(null);
@@ -106,7 +133,10 @@ const PaginaAvaliacao = () => {
       const comentariosComUsuario = await Promise.all(
         comentariosData.map(async (c: any) => ({ ...c, user: await getOneUser(c.usersId) }))
       );
-      setComentarios(comentariosComUsuario.map(c => ({...c, userName: c.user.nome, userImage: c.user.fotosrc})).sort((a,b) => new Date(a.data).getTime() - new Date(b.data).getTime()));
+      const comentariosOrdenados = mergeSortComentarios(
+        comentariosComUsuario.map((c) => ({ ...c, userName: c.user.nome, userImage: c.user.fotosrc }))
+      );
+      setComentarios(comentariosOrdenados);
     } catch (error) {
       console.error("Erro ao buscar dados:", error);
       setAvaliacao(null);
