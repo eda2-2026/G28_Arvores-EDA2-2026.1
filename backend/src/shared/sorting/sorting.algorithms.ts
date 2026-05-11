@@ -81,6 +81,101 @@ export class SortingAlgorithms {
     return [...result, ...left.slice(i), ...right.slice(j)];
   }
 
+    /**
+   * INSERTIONSORT - algoritmo incremental
+   * - complexidade: O(n²) no pior caso
+   * - melhor caso: O(n), quando a lista já está quase ordenada
+   * - ESTÁVEL
+   * - ideal para listas pequenas
+   */
+  static insertionSort<T>(
+    arr: T[],
+    compareFn: ComparisonFunction<T>
+  ): T[] {
+    const copy = [...arr];
+  
+    for (let i = 1; i < copy.length; i++) {
+      const current = copy[i];
+      let j = i - 1;
+  
+      while (j >= 0 && compareFn(copy[j], current) > 0) {
+        copy[j + 1] = copy[j];
+        j--;
+      }
+  
+      copy[j + 1] = current;
+    }
+  
+      return copy;
+  }
+  
+    /**
+     * RADIXSORT - algoritmo não comparativo para números inteiros
+     * - complexidade: O(n * k), onde k é a quantidade de dígitos
+     * - ideal para ordenar IDs e valores inteiros
+     * - esta implementação aceita números positivos e negativos
+     */
+  static radixSort(arr: number[], ascending = true): number[] {
+    if (arr.length <= 1) return [...arr];
+  
+    const positives = arr.filter((num) => num >= 0);
+    const negatives = arr
+      .filter((num) => num < 0)
+      .map((num) => Math.abs(num));
+  
+    const sortedPositives = this.radixSortPositiveNumbers(positives);
+    const sortedNegatives = this.radixSortPositiveNumbers(negatives)
+      .reverse()
+      .map((num) => -num);
+  
+    const result = [...sortedNegatives, ...sortedPositives];
+  
+    return ascending ? result : result.reverse();
+  }
+  
+    /**
+     * função auxiliar do RadixSort para números inteiros positivos
+     */
+  private static radixSortPositiveNumbers(arr: number[]): number[] {
+    if (arr.length <= 1) return [...arr];
+  
+    let result = [...arr];
+    const max = Math.max(...result);
+    let exp = 1;
+  
+    while (Math.floor(max / exp) > 0) {
+      result = this.countingSortByDigit(result, exp);
+      exp *= 10;
+    }
+  
+    return result;
+    }
+  
+    /**
+     * CountingSort auxiliar usado pelo RadixSort para ordenar por dígito
+     */
+  private static countingSortByDigit(arr: number[], exp: number): number[] {
+    const output = new Array(arr.length);
+    const count = new Array(10).fill(0);
+  
+    for (const num of arr) {
+      const digit = Math.floor(num / exp) % 10;
+      count[digit]++;
+    }
+  
+    for (let i = 1; i < 10; i++) {
+      count[i] += count[i - 1];
+    }
+  
+    for (let i = arr.length - 1; i >= 0; i--) {
+      const digit = Math.floor(arr[i] / exp) % 10;
+      output[count[digit] - 1] = arr[i];
+      count[digit]--;
+    }
+  
+    return output;
+  }
+
   /**
    * benchmark - compara tempo de execução entre algoritmos
    */

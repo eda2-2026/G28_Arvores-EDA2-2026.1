@@ -9,6 +9,8 @@ export type ComparisonFunction<T> = (a: T, b: T) => number;
 export type SortingAlgorithm =
   | 'quicksort'
   | 'mergesort'
+  | 'radixsort'
+  | 'insertionsort'
   | 'native';
 
 
@@ -42,4 +44,22 @@ export interface SortOption {
   label: string;
   value: string;
   algorithm: SortingAlgorithm;
+}
+
+/**
+ * opção usada pelo componente AlgoritmoSelector
+ */
+export interface AlgorithmSelectorOption {
+  label: string;
+  value: SortingAlgorithm;
+}
+
+/**
+ * props do componente AlgoritmoSelector
+ */
+export interface AlgorithmSelectorProps {
+  value: SortingAlgorithm;
+  onChange: (algorithm: SortingAlgorithm) => void;
+  options?: AlgorithmSelectorOption[];
+  label?: string;
 }
