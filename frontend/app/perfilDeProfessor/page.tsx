@@ -6,6 +6,46 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { getOneProf, getAvaliacoesByProf, getOneUser, profileImageLoader } from "../utils/api";
 import PostCard from "../components/post_card/PostCard";
 
+function stableMergeSort<T>(array: T[], compare: (a: T, b: T) => number): T[] {
+  if (!Array.isArray(array)) return array;
+
+  const indexed = array.map((item, index) => ({ item, index }));
+
+  function merge(left: typeof indexed, right: typeof indexed) {
+    const result: typeof indexed = [];
+    let i = 0;
+    let j = 0;
+    while (i < left.length && j < right.length) {
+      const cmp = compare(left[i].item, right[j].item);
+      if (cmp < 0) {
+        result.push(left[i++]);
+      } else if (cmp > 0) {
+        result.push(right[j++]);
+      } else {
+        if (left[i].index <= right[j].index) {
+          result.push(left[i++]);
+        } else {
+          result.push(right[j++]);
+        }
+      }
+    }
+    while (i < left.length) result.push(left[i++]);
+    while (j < right.length) result.push(right[j++]);
+    return result;
+  }
+
+  function sortSlice(arr: typeof indexed): typeof indexed {
+    if (arr.length <= 1) return arr;
+    const mid = Math.floor(arr.length / 2);
+    const left = sortSlice(arr.slice(0, mid));
+    const right = sortSlice(arr.slice(mid));
+    return merge(left, right);
+  }
+
+  const sortedIndexed = sortSlice(indexed);
+  return sortedIndexed.map((x) => x.item);
+}
+
 const PerfilDeProfessor = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -44,11 +84,14 @@ const PerfilDeProfessor = () => {
         })
       );
 
-      avaliacoesComUsuario.sort(
-        (a, b) => new Date(b.data).getTime() - new Date(a.data).getTime()
-      );
+      const sortedAvaliacoes = stableMergeSort(avaliacoesComUsuario, (a, b) => {
+        const ta = new Date(a.data).getTime();
+        const tb = new Date(b.data).getTime();
+        // para decrescente - mais recentes no topo
+        return tb - ta;
+      });
 
-      setAvaliacoes(avaliacoesComUsuario);
+      setAvaliacoes(sortedAvaliacoes);
     } catch (error) {
       console.error("Erro ao carregar dados do professor:", error);
     } finally {
