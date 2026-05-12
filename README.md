@@ -75,3 +75,52 @@ npm run dev
 
 O frontend estará disponível em `http://localhost:3000`
 
+## Algoritmos de Ordenação utilizados
+
+- QuickSort: implementação simples, com pivô sendo o último elemento, recursiva e sem otimizações adicionais.
+- MergeSort: implementação estável para ordenações que exigem estabilidade (mantém ordem relativa de chaves iguais).
+- InsertionSort: algoritmo incremental e estável, adequado para listas pequenas ou quase ordenadas.
+- RadixSort: algoritmo não comparativo para números inteiros (suporta positivos e negativos).
+
+### Explicações
+
+#### QuickSort
+
+- Complexidade: tempo médio O(n log n), pior caso O(n²).
+- Espaço: O(log n) adicional devido à recursão na implementação atual.
+- Propriedades: não estável por padrão.
+- Observações sobre a implementação atual:
+   - Pivô: o algoritmo usa o último elemento do subarray como pivô.
+
+Motivação: o `quickSort` é adequado para ordenações gerais por campos textuais (ex.: nome) e é um bom ponto de partida para discussões sobre tempo de execução.
+
+#### MergeSort
+
+- Complexidade: O(n log n) tempo no melhor, médio e pior caso.
+- Espaço: O(n) adicional.
+- Propriedades: estável.
+
+Motivação: foi o escolhido para ordenações que exigem estabilidade, por exemplo quando ordenamos por data mantendo a ordem original quando chaves são iguais (ex.: avaliações com mesma data/horário).
+
+
+#### InsertionSort
+
+- Complexidade: O(n²) no pior caso, O(n) no melhor caso (entrada já quase ordenada).
+- Espaço: O(1) adicional — operação in-place na forma implementada.
+- Propriedades: estável.
+
+Motivação: `InsertionSort` é útil quando os arrays são pequenos ou já quase ordenados. No Fui com a Cara a implementação serve como referência para comparar overheads práticos e também como alternativa de baixo custo para listas pequenas. Foi escolhido pela sua fácil implementação.
+
+#### RadixSort
+
+- Complexidade: O(n * k), onde `k` é o número de dígitos a processar.
+- Espaço: O(n + b) adicional, onde `b` é a base usada, no nosso caso, 10 (base decimal).
+
+Motivação: `RadixSort` é apropriado para ordenar inteiros (IDs, chaves numéricas) e costuma superar algoritmos por comparação quando `k` é pequeno em relação a `log n`. A implementação no Fui com a Cara trata números negativos separando positivos e negativos e recompondo-os, portanto é adequada para vetores de inteiros usados em testes ou ordenação de IDs. 
+
+### Justificativa de uso
+
+   - Performance (tempo): QuickSort para listas gerais onde a média importa.
+   - Estabilidade: MergeSort quando a ordem relativa deve ser preservada.
+   - Simplicidade/overhead: InsertionSort para pequenas partições.
+
