@@ -157,112 +157,37 @@ export default function BenchmarkPage() {
     <main className="min-h-screen bg-[#050036] text-slate-50">
       <section className="mx-auto max-w-7xl px-6 py-12 lg:px-10">
         <div className="rounded-3xl border border-slate-700/80 bg-slate-900/80 p-8 shadow-2xl shadow-cyan-950/20 backdrop-blur">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-3xl space-y-4">
-              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                Comparação entre QuickSort, MergeSort, RadixSort e InsertionSort
-              </h1>
-              <p className="text-base leading-7 text-slate-300 sm:text-lg">
-                Esta página gera conjuntos de dados com <strong>100</strong>, <strong>1000</strong> e <strong>10000</strong> itens, executa cada algoritmo sobre a mesma entrada e mostra o tempo gasto em milissegundos. O gráfico ajuda a enxergar rapidamente qual algoritmo tende a escalar melhor em cada cenário.
-              </p>
-            </div>
-
+        
+          <h2 className="text-2xl font-semibold">Comparação de Busca: Sequencial vs Trie</h2>
+          <p className="mt-2 text-sm leading-7 text-slate-300 sm:text-lg">Executa várias buscas por prefixo numa lista de nomes simulada e mede o tempo médio.</p>
+          <div className="mt-4 flex gap-4">
             <button
               type="button"
-              onClick={() => void runBenchmark()}
-              disabled={running}
-              className="inline-flex items-center justify-center rounded-2xl bg-cyan-400 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-70"
+              onClick={async () => {
+                const names = generateDataset(1000, 42).map((n) => `Nome ${n}`);
+                // constroi árvore
+                const { default: Trie } = await import('../utils/trie');
+                const t = new Trie();
+                names.forEach((nm, i) => t.insert(nm, { id: i, nome: nm }));
+
+                // gera prefixos para busca
+                const prefixes = Array.from({ length: 200 }, (_, i) => names[Math.floor(Math.random() * names.length)].slice(0, 3));
+
+                const tStart = performance.now();
+                for (const p of prefixes) t.searchPrefix(p);
+                const tEnd = performance.now();
+
+                const sStart = performance.now();
+                for (const p of prefixes) names.filter((n) => n.toLowerCase().startsWith(p.toLowerCase()));
+                const sEnd = performance.now();
+
+                alert(`Trie total: ${(tEnd - tStart).toFixed(3)} ms\nSequencial total: ${(sEnd - sStart).toFixed(3)} ms`);
+              }}
+              className="inline-flex items-center justify-center rounded-2xl bg-cyan-400 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
             >
-              {running ? "Executando..." : "Executar novamente"}
+              Executar comparação de busca
             </button>
           </div>
-
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-slate-700 bg-slate-950/70 p-4">
-              <p className="text-sm uppercase tracking-wider text-slate-400">Tamanho dos testes</p>
-              <p className="mt-2 text-2xl font-semibold">100 / 1000 / 10000</p>
-            </div>
-            <div className="rounded-2xl border border-slate-700 bg-slate-950/70 p-4">
-              <p className="text-sm uppercase tracking-wider text-slate-400">Algoritmos</p>
-              <p className="mt-2 text-2xl font-semibold">4 comparações</p>
-            </div>
-            <div className="rounded-2xl border border-slate-700 bg-slate-950/70 p-4">
-              <p className="text-sm uppercase tracking-wider text-slate-400">Última execução</p>
-              <p className="mt-2 text-lg font-semibold">{lastRunAt ?? "Aguardando"}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-10 grid gap-6 xl:grid-cols-3">
-          <article className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 xl:col-span-2">
-            <h2 className="text-2xl font-semibold">Resultados por tamanho</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-400">
-              Barras maiores significam mais tempo de execução.
-            </p>
-
-            <div className="mt-8 space-y-8">
-              {results.length === 0 ? (
-                <p className="rounded-2xl border border-dashed border-slate-700 bg-slate-950/60 p-6 text-slate-300">
-                  Gerando os resultados do benchmark...
-                </p>
-              ) : (
-                results.map((group) => {
-                  const max = Math.max(...group.results.map((item) => item.timeMs));
-                  const fastest = fastestBySize.find((item) => item.size === group.size)?.fastest;
-
-                  return (
-                    <section key={group.size} className="rounded-2xl border border-slate-800 bg-slate-950/50 p-5">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <h3 className="text-xl font-semibold">{group.size} itens</h3>
-                        {fastest ? (
-                          <span className="inline-flex rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-sm text-emerald-200">
-                            Mais rápido: {fastest.label}
-                          </span>
-                        ) : null}
-                      </div>
-
-                      <div className="mt-5 grid gap-4">
-                        {group.results.map((item) => {
-                          const toneMap: Record<AlgorithmKey, string> = {
-                            quickSort: "bg-gradient-to-r from-cyan-400 to-sky-500",
-                            mergeSort: "bg-gradient-to-r from-violet-400 to-fuchsia-500",
-                            radixSort: "bg-gradient-to-r from-amber-300 to-orange-500",
-                            insertionSort: "bg-gradient-to-r from-rose-400 to-red-500",
-                          };
-
-                          return (
-                            <BenchmarkBar
-                              key={item.key}
-                              label={item.label}
-                              value={item.timeMs}
-                              max={max}
-                              tone={toneMap[item.key]}
-                            />
-                          );
-                        })}
-                      </div>
-
-                      <div className="mt-4 grid gap-2 text-sm text-slate-300 sm:grid-cols-2 lg:grid-cols-4">
-                        {group.results.map((item) => (
-                          <div key={`${group.size}-${item.key}`} className="rounded-xl bg-slate-900/70 px-4 py-3">
-                            <div className="font-medium text-slate-100">{item.label}</div>
-                            <div>{formatMs(item.timeMs)}</div>
-                            <div className={item.sorted ? "text-emerald-300" : "text-rose-300"}>
-                              {item.sorted ? "Ordenado corretamente" : "Falha na ordenação"}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </section>
-                  );
-                })
-              )}
-            </div>
-          </article>
-
-          <aside className="space-y-6">
-
-          </aside>
         </div>
       </section>
     </main>

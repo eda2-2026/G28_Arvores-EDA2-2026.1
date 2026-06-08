@@ -19,6 +19,8 @@ const Home = () => {
   };
 
   const [professores, setProfessores] = useState<Professor[]>([]);
+  const [nameTrie, setNameTrie] = useState<any | null>(null);
+  const [deptTrie, setDeptTrie] = useState<any | null>(null);
   const [ordenacao, setOrdenacao] = useState<
     'nome' | 'departamento' | 'recentes' | 'antigas' | 'id'
   >('recentes');
@@ -30,6 +32,20 @@ const Home = () => {
       const data = await getAllProf();
       setProfessores(data);
       setFiltro(data);
+      // constroi árvore por nome e departamento para a busca por prefixo
+      try {
+        const Trie = (await import('./utils/trie')).default;
+        const tName = new Trie();
+        const tDept = new Trie();
+        data.forEach((p: any) => {
+          if (typeof p.nome === 'string') tName.insert(p.nome, { id: p.id, nome: p.nome, departamento: p.departamento });
+          if (typeof p.departamento === 'string') tDept.insert(p.departamento, { id: p.id, nome: p.nome, departamento: p.departamento });
+        });
+        setNameTrie(tName);
+        setDeptTrie(tDept);
+      } catch (e) {
+        console.warn('Trie util not available:', e);
+      }
     } catch (error) {
       console.error("Erro ao buscar professores:", error);
     }
@@ -149,6 +165,24 @@ const Home = () => {
     if (searchTerm === "") {
       setFiltro(professores);
       return;
+    }
+
+    // se trie estiver disponível, o use, se não, volta para anterior
+    try {
+      const results = modo === 'nome' && nameTrie
+        ? nameTrie.searchPrefix(searchTerm, 200)
+        : modo === 'departamento' && deptTrie
+        ? deptTrie.searchPrefix(searchTerm, 200)
+        : [];
+
+      if (results && results.length > 0) {
+        // mapeia IDs
+        const ids = new Set(results.map((r: any) => r.id));
+        const filtrados = professores.filter((p) => ids.has(p.id));
+        setFiltro(filtrados);
+        return;
+      }
+    } catch (e) {
     }
 
     const filtrados = professores.filter((p) =>
