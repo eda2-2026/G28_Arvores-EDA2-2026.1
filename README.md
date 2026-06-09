@@ -13,7 +13,7 @@ A proposta do trabalho foi usar uma base já existente e aplicar uma estrutura d
 
 ## Vídeo de Apresentação
 
-[Link da Apresentação]()
+[Link da Apresentação](https://youtu.be/rnvlIQ1202c?si=-TzQ5bir7FQc76vX)
 
 ## Objetivo 
 
@@ -84,6 +84,16 @@ Este arquivo foi adaptado para integrar a árvore AVL ao gerenciamento de profes
 #### `backend/src/professores/professores.controller.ts`
 
 Este arquivo foi modificado para disponibilizar novas rotas relacionadas à busca de professores. Foram adicionados endpoints para realizar buscas utilizando a árvore AVL, buscas sequenciais e comparações de desempenho entre os dois métodos. Essas rotas permitem que o frontend e as ferramentas de teste acessem diretamente os resultados e evidenciem os ganhos obtidos com a utilização da árvore AVL.
+
+### Evidências
+
+Abaixo podemos ver a página `home` com a implementação de `Trie`, tornando a busca de professores mais rápida (por nome e departamento). 
+
+![gif-busca](./assets/gif-busca.gif)
+
+Também podemos observar a página de `benchmark` com a eficiência da busca com árvore.
+
+![gif-benchmark](./assets/gif-benchmark.gif)
 
 ## Como rodar o projeto 
 
